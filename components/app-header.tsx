@@ -1,3 +1,4 @@
+import { LogOut } from "lucide-react";
 import { signOut } from "@/app/actions/auth";
 import { PoweredBy } from "@/components/powered-by";
 import { PrintButton } from "@/components/print-button";
@@ -16,7 +17,8 @@ export function AppHeader({ title, showPrint = false }: AppHeaderProps) {
         <div className="flex flex-wrap items-center gap-3 sm:gap-4">
           {showPrint ? <PrintButton /> : null}
           <form action={signOut}>
-            <Button type="submit" variant="outline" size="sm">
+            <Button type="submit" variant="outline" size="sm" className="gap-2">
+              <LogOut aria-hidden className="size-4" />
               Sign out
             </Button>
           </form>
