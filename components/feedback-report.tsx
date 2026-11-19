@@ -1,7 +1,7 @@
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ConceptView, DomainView, ReportView } from "@/lib/report";
 
 function statusVariant(status: string): "default" | "secondary" | "destructive" | "outline" {
@@ -53,15 +53,7 @@ function ConceptRow({ concept }: { concept: ConceptView }) {
 
 function DomainDetail({ domain }: { domain: DomainView }) {
   return (
-    <AccordionItem value={domain.id}>
-      <AccordionTrigger className="gap-4 text-left">
-        <span className="flex flex-1 flex-wrap items-center gap-3">
-          <span className="font-medium">{domain.name}</span>
-          <StatusBadge status={domain.status} label={domain.statusLabel} />
-        </span>
-        <span className="font-mono text-sm">{domain.rating || "—"}</span>
-      </AccordionTrigger>
-      <AccordionContent className="space-y-6">
+    <div className="space-y-6">
         {domain.summary ? (
           <div className="space-y-2">
             <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Performance summary</p>
@@ -112,8 +104,7 @@ function DomainDetail({ domain }: { domain: DomainView }) {
             <BulletList items={domain.actionItems} tone="plain" />
           </div>
         ) : null}
-      </AccordionContent>
-    </AccordionItem>
+    </div>
   );
 }
 
@@ -130,16 +121,18 @@ export function FeedbackReport({ report }: { report: ReportView }) {
         </Alert>
       ) : null}
 
-      <section className="grid gap-6 lg:grid-cols-[1fr_320px]">
-        <Card>
+      <section className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
+        <Card className="min-w-0">
           <CardHeader>
             <CardDescription className="flex flex-wrap gap-x-2 text-xs">
               {report.track ? <span>{report.track}</span> : null}
               {report.track && report.interviewDate ? <span>·</span> : null}
               {report.interviewDate ? <span>Interview date: {report.interviewDate}</span> : null}
             </CardDescription>
-            <CardTitle className="font-heading text-3xl font-semibold tracking-tight">{report.candidateName || "Student"}</CardTitle>
-            <CardDescription>{report.candidateEmail}</CardDescription>
+            <CardTitle className="break-words font-heading text-2xl font-semibold tracking-tight sm:text-3xl">
+              {report.candidateName || "Student"}
+            </CardTitle>
+            <CardDescription className="break-all">{report.candidateEmail}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Executive summary</p>
@@ -147,7 +140,7 @@ export function FeedbackReport({ report }: { report: ReportView }) {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card className="min-w-0">
           <CardContent className="divide-y pt-6 text-sm">
             <div className="flex items-center justify-between py-3">
               <span className="text-muted-foreground">Clearance status</span>
@@ -222,28 +215,38 @@ export function FeedbackReport({ report }: { report: ReportView }) {
             <p className="text-xs uppercase tracking-wider text-muted-foreground">Section 02</p>
             <h2 className="font-heading text-2xl font-semibold tracking-tight">Domain breakdown</h2>
           </div>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {report.domains.map((domain) => (
-              <Card key={domain.id} size="sm">
-                <CardContent className="space-y-3 pt-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="text-sm font-medium">{domain.name}</p>
+          <Tabs defaultValue={report.domains[0].id} className="flex w-full min-w-0 flex-col gap-4">
+            <TabsList className="grid h-auto! w-full grid-cols-1 gap-3 bg-transparent p-0 sm:grid-cols-2 lg:grid-cols-4">
+              {report.domains.map((domain) => (
+                <TabsTrigger
+                  key={domain.id}
+                  value={domain.id}
+                  className="h-auto flex-col items-stretch justify-start gap-3 whitespace-normal rounded-xl border-foreground/15 bg-card p-4 text-left text-foreground shadow-xs after:hidden data-active:border-foreground/70 data-active:bg-card data-active:shadow-md dark:border-foreground/20 dark:data-active:border-foreground/70 dark:data-active:bg-card"
+                >
+                  <span className="flex items-start justify-between gap-3">
+                    <span className="text-sm font-medium">{domain.name}</span>
                     <span className="font-mono text-lg">{domain.rating || "—"}</span>
-                  </div>
+                  </span>
                   <StatusBadge status={domain.status} label={domain.statusLabel} />
-                </CardContent>
-              </Card>
+                </TabsTrigger>
+              ))}
+            </TabsList>
+            {report.domains.map((domain) => (
+              <TabsContent key={domain.id} value={domain.id}>
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex flex-wrap items-center gap-3 font-heading text-xl font-semibold">
+                      {domain.name}
+                      <StatusBadge status={domain.status} label={domain.statusLabel} />
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <DomainDetail domain={domain} />
+                  </CardContent>
+                </Card>
+              </TabsContent>
             ))}
-          </div>
-          <Card>
-            <CardContent className="pt-6">
-              <Accordion multiple className="w-full">
-                {report.domains.map((domain) => (
-                  <DomainDetail key={domain.id} domain={domain} />
-                ))}
-              </Accordion>
-            </CardContent>
-          </Card>
+          </Tabs>
         </section>
       ) : null}
 
