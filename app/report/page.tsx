@@ -1,5 +1,6 @@
+import { refetchStudentReport } from "@/app/actions/report";
 import { AppHeader } from "@/components/app-header";
-import { FeedbackReport } from "@/components/feedback-report";
+import { StudentReport } from "@/components/student-report";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { lookupStudentRow } from "@/lib/feedback";
 import { buildReportView } from "@/lib/report";
@@ -14,11 +15,11 @@ export default async function StudentReportPage() {
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <AppHeader title="Interview Feedback" showPrint />
+      <AppHeader title="Interview Feedback" />
 
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6 sm:py-10 print:py-0">
         {lookup.ok ? (
-          <FeedbackReport report={buildReportView(lookup.row)} />
+          <StudentReport initial={buildReportView(lookup.row)} refetch={refetchStudentReport} />
         ) : (
           <Alert variant={lookup.reason === "not_found" ? "default" : "destructive"}>
             <AlertTitle>

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { AppHeader } from "@/components/app-header";
+import { DownloadMarkdownButton } from "@/components/download-markdown-button";
 import { FeedbackReport } from "@/components/feedback-report";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EMAIL_PATTERN, lookupStudentRow } from "@/lib/feedback";
-import { buildReportView } from "@/lib/report";
+import { buildReportView, type ReportView } from "@/lib/report";
 import { ADMIN_LOGIN, requireRole, type Role } from "@/lib/session";
 
 // Reads the session cookie, so it must render per request.
@@ -50,6 +51,7 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
   const { email: rawEmail } = await searchParams;
   const email = (rawEmail ?? "").trim().toLowerCase();
 
+  let report: ReportView | null = null;
   let body: ReactNode = null;
   if (email) {
     if (!EMAIL_PATTERN.test(email)) {
@@ -61,7 +63,8 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
     } else {
       const lookup = await lookupStudentRow(email);
       if (lookup.ok) {
-        body = <FeedbackReport report={buildReportView(lookup.row)} />;
+        report = buildReportView(lookup.row);
+        body = <FeedbackReport report={report} />;
       } else {
         body = (
           <Alert variant={lookup.reason === "not_found" ? "default" : "destructive"}>
@@ -78,7 +81,10 @@ export default async function AdminPage({ searchParams }: { searchParams: Search
 
   return (
     <div className="flex min-h-dvh flex-col">
-      <AppHeader title="IRP Assessment Report" showPrint />
+      <AppHeader
+        title="IRP Assessment Report"
+        actions={report ? <DownloadMarkdownButton report={report} /> : undefined}
+      />
       <main className="mx-auto w-full max-w-5xl flex-1 space-y-8 px-4 py-8 sm:px-6 sm:py-10 print:py-0">
         <Card>
           <CardHeader>
