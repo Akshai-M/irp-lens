@@ -1,3 +1,5 @@
+import { SUBSHEETS } from "./config";
+
 export type SheetRow = Record<string, unknown>;
 
 export type StudentLookup =
@@ -8,18 +10,20 @@ export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * Fetches the interview row for one email from the Apps Script endpoint.
+ * Every sub-sheet is requested with its own `subsheet` parameter, and the first matching row is used.
  * Runs on the server only, so the Apps Script URL never reaches the browser.
  */
 export async function lookupStudentRow(rawEmail: string): Promise<StudentLookup> {
   const baseUrl = process.env.APPS_SCRIPT_URL;
-  const subsheet = process.env.APPS_SCRIPT_SUBSHEET;
-  if (!baseUrl || !subsheet) {
+  if (!baseUrl || SUBSHEETS.length === 0) {
     return { ok: false, reason: "not_configured" };
   }
 
   const email = rawEmail.trim().toLowerCase();
   const url = new URL(baseUrl);
-  url.searchParams.set("subsheet", subsheet);
+  for (const subsheet of SUBSHEETS) {
+    url.searchParams.append("subsheet", subsheet);
+  }
   url.searchParams.set("email", email);
 
   let response: Response;
@@ -38,13 +42,15 @@ export async function lookupStudentRow(rawEmail: string): Promise<StudentLookup>
   }
 
   const results = (body as { results?: Record<string, { data?: unknown }> })?.results ?? {};
-  const section = results[subsheet] ?? Object.values(results)[0];
-  const rows = Array.isArray(section?.data) ? (section.data as SheetRow[]) : [];
 
-  const match = rows.find(
-    (row) => String(row["Candidate Email"] ?? "").trim().toLowerCase() === email,
-  );
-  if (!match) return { ok: false, reason: "not_found" };
+  for (const subsheet of SUBSHEETS) {
+    const section = results[subsheet];
+    const rows = Array.isArray(section?.data) ? (section.data as SheetRow[]) : [];
+    const match = rows.find(
+      (row) => String(row["Candidate Email"] ?? "").trim().toLowerCase() === email,
+    );
+    if (match) return { ok: true, row: match };
+  }
 
-  return { ok: true, row: match };
+  return { ok: false, reason: "not_found" };
 }
