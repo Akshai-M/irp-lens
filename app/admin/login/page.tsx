@@ -14,7 +14,7 @@ export default async function AdminLoginPage() {
   return (
     <div className="flex min-h-dvh flex-col">
       <header className="border-b">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-x-4 gap-y-3 px-4 py-3 sm:px-6">
           <h1 className="font-heading text-lg font-semibold tracking-tight sm:text-xl">IRP Assessment Report</h1>
           <PoweredBy />
         </div>
