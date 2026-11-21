@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, CircleDotDashed, Eye, RefreshCw } from "lucide-react";
+import { CircleDotDashed, Eye, RefreshCw } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
 import type { RefetchResult } from "@/app/actions/report";
 import { DownloadMarkdownButton } from "@/components/download-markdown-button";
@@ -8,11 +8,11 @@ import { FeedbackReport } from "@/components/feedback-report";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { Attempt } from "@/lib/attempts";
 import { pickBest, sortLatestFirst } from "@/lib/attempts";
-import type { TrackId } from "@/lib/config";
-import { cn } from "@/lib/utils";
+import { trackById, type TrackId } from "@/lib/config";
 
 type View = "latest" | "best" | "history";
 
@@ -138,65 +138,45 @@ export function TrackReport({
 
       {view === "history" ? (
         <div className="space-y-6">
-          <div className="space-y-3">
-            {attempts.map((attempt, index) => {
-              const isSelected = attempt.id === selectedId;
-              const domains = attempt.report.domains;
-              const shownDomains = domains.slice(0, 3);
-              const hiddenCount = domains.length - shownDomains.length;
-              return (
-                <div
-                  key={attempt.id}
-                  className={cn(
-                    "space-y-3 rounded-xl border bg-card p-4 sm:p-5",
-                    isSelected && "border-foreground/40 shadow-sm",
-                  )}
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex flex-wrap items-center gap-2 text-sm">
-                      <CalendarDays aria-hidden className="size-4 text-muted-foreground" />
-                      <span className="font-medium">{attempt.dateLabel}</span>
-                      <span className="text-muted-foreground">· Attempt {attempts.length - index}</span>
-                      {index === 0 ? <Badge variant="secondary">Latest</Badge> : null}
-                      {best && best.id === attempt.id ? <Badge variant="outline">Best</Badge> : null}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-3">
-                      <span className="font-mono text-lg font-semibold">{attempt.scoreLabel}</span>
-                      <ClearanceBadge clearance={attempt.clearance} />
-                      <Button
-                        type="button"
-                        variant={isSelected ? "default" : "outline"}
-                        size="sm"
-                        className="gap-2"
-                        onClick={() => setSelectedId(attempt.id)}
-                      >
-                        <Eye aria-hidden />
-                        View
-                      </Button>
-                    </div>
-                  </div>
-
-                  {domains.length > 0 ? (
-                    <div className="flex flex-wrap gap-2">
-                      {shownDomains.map((domain) => (
-                        <span
-                          key={domain.id}
-                          className="inline-flex items-center gap-1.5 rounded-md border bg-background px-2.5 py-1 text-xs"
+          <div className="overflow-hidden rounded-xl border bg-card">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-16">S.No</TableHead>
+                  <TableHead>Report</TableHead>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Result</TableHead>
+                  <TableHead className="text-right">View</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {attempts.map((attempt, index) => {
+                  const isSelected = attempt.id === selectedId;
+                  return (
+                    <TableRow key={attempt.id} data-state={isSelected ? "selected" : undefined}>
+                      <TableCell className="font-mono text-muted-foreground">{index + 1}</TableCell>
+                      <TableCell className="font-medium">{trackById(trackId)?.label ?? "Interview"}</TableCell>
+                      <TableCell>{attempt.dateLabel}</TableCell>
+                      <TableCell>
+                        <ClearanceBadge clearance={attempt.clearance} />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button
+                          type="button"
+                          variant={isSelected ? "default" : "outline"}
+                          size="sm"
+                          className="gap-2"
+                          onClick={() => setSelectedId(attempt.id)}
                         >
-                          {domain.name}
-                          <span className="font-mono font-semibold">{domain.rating || "—"}</span>
-                        </span>
-                      ))}
-                      {hiddenCount > 0 ? (
-                        <span className="inline-flex items-center px-1 py-1 text-xs text-muted-foreground">
-                          +{hiddenCount} more
-                        </span>
-                      ) : null}
-                    </div>
-                  ) : null}
-                </div>
-              );
-            })}
+                          <Eye aria-hidden />
+                          View
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
           </div>
 
           {selected ? (
