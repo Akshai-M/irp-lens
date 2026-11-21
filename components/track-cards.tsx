@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CircleDashed } from "lucide-react";
+import { ArrowRight, CalendarDays, CircleDashed } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { buttonVariants } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,27 +7,25 @@ import { TRACKS, type TrackId } from "@/lib/config";
 import type { Attempt, StudentRecord } from "@/lib/attempts";
 import { cn } from "@/lib/utils";
 
-function DomainScores({ attempt }: { attempt: Attempt }) {
+function DomainChips({ attempt }: { attempt: Attempt }) {
   const domains = attempt.report.domains;
   if (domains.length === 0) return null;
+  const shown = domains.slice(0, 3);
+  const hidden = domains.length - shown.length;
   return (
     <div className="space-y-2">
-      <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Domain scores</p>
-      <ul className="divide-y rounded-lg border">
-        {domains.map((domain) => (
-          <li key={domain.id} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
-            <span className="min-w-0 truncate">{domain.name}</span>
-            <span className="flex shrink-0 items-center gap-2">
-              {domain.statusLabel ? (
-                <Badge variant="outline" className="hidden sm:inline-flex">
-                  {domain.statusLabel}
-                </Badge>
-              ) : null}
-              <span className="font-mono font-semibold">{domain.rating || "—"}</span>
-            </span>
-          </li>
+      <div className="flex flex-wrap gap-2">
+        {shown.map((domain) => (
+          <span
+            key={domain.id}
+            className="inline-flex items-center gap-1.5 rounded-md border bg-background px-2.5 py-1 text-xs"
+          >
+            {domain.name}
+            <span className="font-mono font-semibold">{domain.rating || "—"}</span>
+          </span>
         ))}
-      </ul>
+      </div>
+      {hidden > 0 ? <p className="text-xs text-muted-foreground">+{hidden} more</p> : null}
     </div>
   );
 }
@@ -74,7 +72,10 @@ export function TrackCards({ record, hrefFor }: { record: StudentRecord; hrefFor
                 <div>
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Latest score</p>
                   <p className="font-mono text-3xl font-semibold">{latest.scoreLabel}</p>
-                  <p className="text-sm text-muted-foreground">Taken on {latest.dateLabel}</p>
+                  <p className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                    <CalendarDays aria-hidden className="size-4" />
+                    {latest.dateLabel}
+                  </p>
                 </div>
                 <div className="text-right">
                   <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">Result</p>
@@ -82,7 +83,7 @@ export function TrackCards({ record, hrefFor }: { record: StudentRecord; hrefFor
                 </div>
               </div>
 
-              <DomainScores attempt={latest} />
+              <DomainChips attempt={latest} />
 
               <Link href={hrefFor(track.id)} className={cn(buttonVariants({ size: "lg" }), "w-full gap-2")}>
                 View report
