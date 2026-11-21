@@ -2,7 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { resolveAdminRole } from "@/lib/auth";
-import { EMAIL_PATTERN, lookupStudentRow } from "@/lib/feedback";
+import { loadStudentRecord } from "@/lib/attempts";
+import { EMAIL_PATTERN } from "@/lib/feedback";
 import { clearSession, getSession, setSession } from "@/lib/session";
 
 export type LoginState = { error?: string } | undefined;
@@ -13,7 +14,7 @@ export async function studentLogin(_prev: LoginState, formData: FormData): Promi
     return { error: "Enter a valid email address." };
   }
 
-  const lookup = await lookupStudentRow(email);
+  const lookup = await loadStudentRecord(email);
   if (!lookup.ok) {
     if (lookup.reason === "not_found") {
       return { error: "No interview feedback was found for this email." };

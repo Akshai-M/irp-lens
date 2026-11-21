@@ -1,6 +1,25 @@
 /**
- * Sub-sheets (tabs) in the Apps Script spreadsheet that hold interview rows.
- * Add a new tab name here when a new track (for example Backend or Gen AI) is added.
- * They are searched in this order, and the first row matching the student's email is used.
+ * Interview tracks. Each track has its own Apps Script deployment (`endpointEnv`) and its own
+ * sub-sheet tab (`subsheet`). To add a track, add an entry here and set its env variable.
  */
-export const SUBSHEETS: readonly string[] = ["L1 Evaluation Sheet (from 8th sep)"];
+export const TRACKS = [
+  {
+    id: "frontend",
+    label: "Frontend Development",
+    subsheet: "L1 Evaluation Sheet (from 8th sep)",
+    endpointEnv: "APPS_SCRIPT_URL",
+  },
+  {
+    id: "genai",
+    label: "GenAI",
+    subsheet: "Evauation sheet",
+    endpointEnv: "APPS_SCRIPT_GENAI_URL",
+  },
+] as const;
+
+export type Track = (typeof TRACKS)[number];
+export type TrackId = Track["id"];
+
+export function trackById(id: string): Track | undefined {
+  return TRACKS.find((track) => track.id === id);
+}
